@@ -31,17 +31,17 @@ serve(int infd, struct sockaddr_storage *in_sa)
 	char inaddr[INET6_ADDRSTRLEN /* > INET_ADDRSTRLEN */];
 	char tstmp[21];
 
-	/* set connection timeout */
+	/* Set connection timeout. */
 	if (sock_set_timeout(infd, 30)) {
 		goto cleanup;
 	}
 
-	/* handle request */
+	/* Handle request. */
 	if (!(status = http_get_request(infd, &r))) {
 		status = http_send_response(infd, &r);
 	}
 
-	/* write output to log */
+	/* Write output to log. */
 	t = time(NULL);
 	if (!strftime(tstmp, sizeof(tstmp), "%Y-%m-%dT%H:%M:%SZ",
 	              gmtime(&t))) {
@@ -54,7 +54,7 @@ serve(int infd, struct sockaddr_storage *in_sa)
 	printf("%s\t%s\t%d\t%s\t%s\n", tstmp, inaddr, status,
 	       r.field[REQ_HOST], r.target);
 cleanup:
-	/* clean up and finish */
+	/* Clean up and finish. */
 	shutdown(infd, SHUT_RD);
 	shutdown(infd, SHUT_WR);
 	close(infd);
@@ -95,37 +95,37 @@ spacetok(const char *s, char **t, size_t tlen)
 	const char *tok;
 	size_t i, j, toki, spaces;
 
-	/* fill token-array with NULL-pointers */
+	/* Fill token-array with NULL-pointers. */
 	for (i = 0; i < tlen; i++) {
 		t[i] = NULL;
 	}
 	toki = 0;
 
-	/* don't allow NULL string or leading spaces */
+	/* Don't allow NULL string or leading spaces. */
 	if (!s || *s == ' ') {
 		return 1;
 	}
 start:
-	/* skip spaces */
+	/* Skip spaces. */
 	for (; *s == ' '; s++)
 		;
 
-	/* don't allow trailing spaces */
+	/* Don't allow trailing spaces. */
 	if (*s == '\0') {
 		goto err;
 	}
 
-	/* consume token */
+	/* Consume token. */
 	for (tok = s, spaces = 0; ; s++) {
 		if (*s == '\\' && *(s + 1) == ' ') {
 			spaces++;
 			s++;
 			continue;
 		} else if (*s == ' ') {
-			/* end of token */
+			/* End of token. */
 			goto token;
 		} else if (*s == '\0') {
-			/* end of string */
+			/* End of string. */
 			goto token;
 		}
 	}
@@ -185,7 +185,7 @@ main(int argc, char *argv[])
 	const char *err;
 	char *tok[4];
 
-	/* defaults */
+	/* Defaults. */
 	int maxnprocs = 512;
 	char *servedir = ".";
 	char *user = "nobody";
@@ -266,7 +266,7 @@ main(int argc, char *argv[])
 		usage();
 	}
 
-	/* allow host xor UNIX-domain socket, force port with host */
+	/* Allow host xor UNIX-domain socket, force port with host. */
 	if ((!s.host == !udsname) || (s.host && !s.port)) {
 		usage();
 	}
@@ -276,7 +276,7 @@ main(int argc, char *argv[])
 		    strerror(errno) : "file exists");
 	}
 
-	/* compile and check the supplied vhost regexes */
+	/* Compile and check the supplied vhost regexes. */
 	for (i = 0; i < s.vhost_len; i++) {
 		if (regcomp(&s.vhost[i].re, s.vhost[i].regex,
 		            REG_EXTENDED | REG_ICASE | REG_NOSUB)) {
@@ -285,13 +285,13 @@ main(int argc, char *argv[])
 		}
 	}
 
-	/* raise the process limit */
+	/* Raise the process limit. */
 	rlim.rlim_cur = rlim.rlim_max = maxnprocs;
 	if (setrlimit(RLIMIT_NPROC, &rlim) < 0) {
 		die("setrlimit RLIMIT_NPROC:");
 	}
 
-	/* validate user and group */
+	/* Validate user and group. */
 	errno = 0;
 	if (user && !(pwd = getpwnam(user))) {
 		die("getpwnam '%s': %s", user, errno ? strerror(errno) :
@@ -303,12 +303,12 @@ main(int argc, char *argv[])
 		    "Entry not found");
 	}
 
-	/* Open a new process group */
+	/* Open a new process group. */
 	setpgid(0,0);
 
 	handlesignals(sigcleanup);
 
-	/* bind socket */
+	/* Bind socket. */
 	insock = udsname ? sock_get_uds(udsname, pwd->pw_uid, grp->gr_gid) :
 	                   sock_get_ips(s.host, s.port);
 
@@ -317,15 +317,15 @@ main(int argc, char *argv[])
 		warn("fork:");
 		break;
 	case 0:
-		/* restore default handlers */
+		/* Restore default handlers. */
 		handlesignals(SIG_DFL);
 
-		/* reap children automatically */
+		/* Reap children automatically. */
 		if (signal(SIGCHLD, SIG_IGN) == SIG_ERR) {
 			die("signal: Failed to set SIG_IGN on SIGCHLD");
 		}
 
-		/* chroot */
+		/* Chroot. */
 		if (chdir(servedir) < 0) {
 			die("chdir '%s':", servedir);
 		}
@@ -333,7 +333,7 @@ main(int argc, char *argv[])
 			die("chroot .:");
 		}
 
-		/* drop root */
+		/* Drop root. */
 		if (grp && setgroups(1, &(grp->gr_gid)) < 0) {
 			die("setgroups:");
 		}
@@ -350,7 +350,7 @@ main(int argc, char *argv[])
 			die("Won't run as root group", argv0);
 		}
 
-		/* accept incoming connections */
+		/* Accept incoming connections. */
 		while (1) {
 			in_sa_len = sizeof(in_sa);
 			if ((infd = accept(insock, (struct sockaddr *)&in_sa,
@@ -359,7 +359,7 @@ main(int argc, char *argv[])
 				continue;
 			}
 
-			/* fork and handle */
+			/* Fork and handle. */
 			switch ((spid = fork())) {
 			case 0:
 				serve(infd, &in_sa);
@@ -367,9 +367,9 @@ main(int argc, char *argv[])
 				break;
 			case -1:
 				warn("fork:");
-				/* fallthrough */
+				/* Fallthrough. */
 			default:
-				/* close the connection in the parent */
+				/* Close the connection in the parent. */
 				close(infd);
 			}
 		}

@@ -1,9 +1,9 @@
 .Dd 2019-02-24
-.Dt QUARK 1
+.Dt jerk 1
 .Os suckless.org
 .Sh NAME
-.Nm quark
-.Nd simple static web server
+.Nm jerk
+.Nd simple static web server with possibility to add handlers
 .Sh SYNOPSIS
 .Nm
 .Fl h Ar host
@@ -29,7 +29,7 @@
 .Oo Fl m Ar map Oc ...
 .Sh DESCRIPTION
 .Nm
-is a simple HTTP GET/HEAD-only web server for static content.
+is a simple HTTP GET/HEAD-only web server for static content and more.
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl d Ar dir
@@ -118,4 +118,5 @@ hosts are discarded.
 can be customized by creating a custom config.h from config.def.h and
 (re)compiling the source code. This keeps it fast, secure and simple.
 .Sh AUTHORS
-.An Laslo Hunhold Aq Mt dev@frign.de
+.An quark - Laslo Hunhold Aq Mt dev@frign.de
+.An jerk  - jienfak@protonmail.com
